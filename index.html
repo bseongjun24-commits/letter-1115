@@ -372,7 +372,7 @@ soundBtn.addEventListener('click', () => { if (!musicOn && !initAudio()) return;
 const intro = document.getElementById('intro');
 document.getElementById('start').addEventListener('click', () => {
   intro.classList.add('gone'); soundBtn.hidden = false;
-  if (initAudio()) setMusic(true);
+  if (initAudio()){ setMusic(true); loadPencil(); }
   setTimeout(() => intro.remove(), 1900);
 });
 
@@ -442,41 +442,35 @@ letter.after(skipBtn);
 let writing = false, writeTimer = null, userHold = 0;
 ['wheel','touchstart'].forEach(ev => deck.addEventListener(ev, () => { if (writing) userHold = performance.now() + 2500; }, {passive: true}));
 
-/* graphite on paper: grainy crackle noise, shaped into short strokes per character */
-let grain = null, pencilBus = null;
-function makeGrain(){
-  const len = ac.sampleRate * 3, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
-  let b = 0;
-  for (let i=0;i<len;i++){
-    const w = Math.random()*2 - 1;
-    b = .985*b + .015*w;
-    const crackle = Math.random() < .045 ? (Math.random()*2 - 1) * 2.4 : 0;
-    d[i] = (w*.55 + b*2.2 + crackle) * (.55 + .45*Math.random());
-  }
-  grain = buf;
-  pencilBus = ac.createGain(); pencilBus.gain.value = 1.0;
-  const hp = ac.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 650;
-  const pk = ac.createBiquadFilter(); pk.type = 'peaking'; pk.frequency.value = 3200; pk.Q.value = .7; pk.gain.value = 5;
-  const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 7800;
-  pencilBus.connect(hp).connect(pk).connect(lp).connect(ac.destination);
+/* recorded pencil (CC0, "pencil_write" by NachtmahrTV via OpenGameArt): short slices of the louder parts per character */
+let pencilBuf = null, pencilHot = [], pencilBus = null, pencilLoading = false;
+function loadPencil(){
+  if (!ac || pencilBuf || pencilLoading) return;
+  pencilLoading = true;
+  fetch('pencil.flac').then(r => r.arrayBuffer())
+    .then(b => new Promise((res, rej) => ac.decodeAudioData(b, res, rej)))
+    .then(buf => {
+      const d = buf.getChannelData(0), win = Math.floor(buf.sampleRate * .02), rms = [];
+      for (let i = 0; i + win < d.length; i += win){ let s = 0; for (let j=0;j<win;j++) s += d[i+j]*d[i+j]; rms.push([i / buf.sampleRate, Math.sqrt(s / win)]); }
+      const mx = Math.max(...rms.map(r => r[1]));
+      pencilHot = rms.filter(r => r[1] > mx*.3 && r[0] < buf.duration - .18).map(r => r[0]);
+      pencilBus = ac.createGain(); pencilBus.gain.value = 1; pencilBus.connect(ac.destination);
+      pencilBuf = buf;
+    }).catch(() => { pencilLoading = false; });
 }
 function scratch(span){
   if (!ac || !musicOn) return;
-  if (!grain) makeGrain();
-  let t = ac.currentTime + .005;
-  const strokes = 1 + Math.floor(Math.random()*3), total = span * (.7 + Math.random()*.25);
-  for (let k=0;k<strokes;k++){
-    const len = total / strokes * (.65 + Math.random()*.3), gap = total / strokes - len;
-    const src = ac.createBufferSource(); src.buffer = grain; src.playbackRate.value = .85 + Math.random()*.35;
-    const g = ac.createGain(), v = .16 + Math.random()*.12;
-    g.gain.setValueAtTime(.0001, t);
-    g.gain.exponentialRampToValueAtTime(v, t + .006);
-    g.gain.setValueAtTime(v * (.7 + Math.random()*.3), t + len*.6);
-    g.gain.exponentialRampToValueAtTime(.0001, t + len);
-    src.connect(g).connect(pencilBus);
-    src.start(t, Math.random()*2.5, len + .02);
-    t += len + gap;
-  }
+  if (!pencilBuf){ loadPencil(); return; }
+  if (!pencilHot.length) return;
+  const len = Math.min(.17, Math.max(.07, span * .95)), t = ac.currentTime + .005;
+  const src = ac.createBufferSource(); src.buffer = pencilBuf; src.playbackRate.value = .94 + Math.random()*.12;
+  const g = ac.createGain(), v = .7 + Math.random()*.3;
+  g.gain.setValueAtTime(.0001, t);
+  g.gain.exponentialRampToValueAtTime(v, t + .015);
+  g.gain.setValueAtTime(v, t + len - .035);
+  g.gain.exponentialRampToValueAtTime(.0001, t + len);
+  src.connect(g).connect(pencilBus);
+  src.start(t, pencilHot[Math.floor(Math.random()*pencilHot.length)], len + .02);
 }
 function follow(s){
   if (performance.now() < userHold) return;
@@ -486,6 +480,7 @@ function follow(s){
 }
 function finishLetter(auto){
   writing = false; clearTimeout(writeTimer);
+  if (ac && musicOn) master.gain.setTargetAtTime(.85, ac.currentTime, .6);
   letter.classList.add('done'); chars.forEach(s => s && s !== 'para' && s.classList.add('on'));
   skipBtn.hidden = true;
   deck.style.scrollSnapType = '';
@@ -498,6 +493,7 @@ skipBtn.addEventListener('click', () => finishLetter(false));
 function showLetter(){
   if (reduce){ finishLetter(false); return; }
   writing = true; deck.style.scrollSnapType = 'none'; skipBtn.hidden = false;
+  if (ac && musicOn){ loadPencil(); master.gain.setTargetAtTime(.4, ac.currentTime, .6); }
   let i = 0;
   const followLoop = () => { if (!writing) return; const last = chars.slice(0, i).reverse().find(c => c && c !== 'para'); if (last) follow(last); requestAnimationFrame(followLoop); };
   requestAnimationFrame(followLoop);
