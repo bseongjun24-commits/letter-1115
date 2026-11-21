@@ -14,7 +14,7 @@
 <meta name="theme-color" content="#1A2138">
 <title>유리에게, 늦은 생일 편지</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Nanum+Pen+Script&family=Pinyon+Script&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Gaegu:wght@300;400&family=Pinyon+Script&display=swap">
 <style>
 /* Layout: full-screen mobile pages that snap one by one inside a 440px column; tap the envelope to begin */
 :root{
@@ -101,15 +101,14 @@ body{margin:0;background:var(--night);color:var(--ink);font-family:var(--f-ui);f
 .hint{font-size:13px;color:var(--ink-soft);text-align:center;margin:16px 0 0}
 
 /* letter */
-.letter{position:relative;font-family:'Nanum Pen Script', var(--f-letter);font-size:25px;line-height:36px;color:#4A4542;text-shadow:0 0 .6px rgba(60,55,52,.55);background:repeating-linear-gradient(to bottom, transparent 0 35px, var(--line) 35px 36px);padding:4px 2px 0}
+.letter{position:relative;font-family:'Gaegu', var(--f-letter);font-weight:400;font-size:22px;line-height:36px;color:#55514E;text-shadow:0 0 .5px rgba(70,66,63,.6), .3px .2px 0 rgba(90,86,83,.25);background:repeating-linear-gradient(to bottom, transparent 0 35px, var(--line) 35px 36px);padding:4px 2px 0}
 .letter p{margin:0 0 36px;word-break:keep-all}
-.letter .hello{font-size:28px}
+.letter .hello{font-size:24px}
+.letter p{filter:url(#graphite)}
 .letter .sign{text-align:right;margin-bottom:0}
 .letter .ch{opacity:0;transition:opacity .16s ease}
 .letter .ch.on{opacity:1}
 .letter.done .ch{opacity:1}
-.pencil{position:absolute;left:0;top:0;width:30px;height:30px;pointer-events:none;opacity:0;transition:opacity .4s, transform .09s linear;z-index:2}
-.pencil.on{opacity:1}
 .skip{display:block;margin:18px auto 0;font:inherit;font-size:13px;color:var(--ink-soft);background:none;border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;transition:opacity .4s}
 .skip[hidden]{display:none}
 
@@ -180,6 +179,15 @@ body{margin:0;background:var(--night);color:var(--ink);font-family:var(--f-ui);f
 </button>
 <div class="dots" id="dots" aria-hidden="true"></div>
 <canvas id="float" aria-hidden="true"></canvas>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="graphite" x="-2%" y="-10%" width="104%" height="120%">
+    <feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" seed="7" result="n"/>
+    <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.4 2.05" result="mask"/>
+    <feComposite in="SourceGraphic" in2="mask" operator="in" result="grainy"/>
+    <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="1" seed="2" result="w"/>
+    <feDisplacementMap in="grainy" in2="w" scale="1.1" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
 
 <main class="deck locked" id="deck">
 
@@ -428,29 +436,47 @@ letter.querySelectorAll('p').forEach(p => {
   walk(p);
   chars.push('para');
 });
-const pencil = document.createElement('span'); pencil.className = 'pencil'; pencil.setAttribute('aria-hidden','true');
-pencil.innerHTML = '<svg viewBox="0 0 32 32"><g transform="rotate(-38 16 16)"><rect x="13" y="0" width="6" height="22" rx="1" fill="#E9B949"/><rect x="13" y="0" width="6" height="4" fill="#D98FA0"/><rect x="13" y="4" width="6" height="2" fill="#B9B4AE"/><path d="M13 22 L16 30 L19 22Z" fill="#EBC9A0"/><path d="M15.1 27.6 L16 30 L16.9 27.6Z" fill="#4A4542"/></g></svg>';
-letter.appendChild(pencil);
 const skipBtn = document.createElement('button'); skipBtn.type = 'button'; skipBtn.className = 'skip'; skipBtn.id = 'skip'; skipBtn.textContent = '한 번에 다 보기'; skipBtn.hidden = true;
 letter.after(skipBtn);
 
 let writing = false, writeTimer = null, userHold = 0;
 ['wheel','touchstart'].forEach(ev => deck.addEventListener(ev, () => { if (writing) userHold = performance.now() + 2500; }, {passive: true}));
 
-function scratch(){
-  if (!ac || !musicOn) return;
-  const len = .05 + Math.random()*.05, t = ac.currentTime;
-  const buf = ac.createBuffer(1, Math.ceil(ac.sampleRate*len), ac.sampleRate), d = buf.getChannelData(0);
-  for (let i=0;i<d.length;i++) d[i] = (Math.random()*2 - 1) * (.6 + .4*Math.sin(i/(12+Math.random()*6)));
-  const src = ac.createBufferSource(); src.buffer = buf;
-  const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2600 + Math.random()*2600; bp.Q.value = .9;
-  const hp = ac.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1400;
-  const g = ac.createGain(); const v = .05 + Math.random()*.04;
-  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(v, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + len);
-  src.connect(bp).connect(hp).connect(g).connect(ac.destination); src.start(t); src.stop(t + len + .02);
+/* graphite on paper: grainy crackle noise, shaped into short strokes per character */
+let grain = null, pencilBus = null;
+function makeGrain(){
+  const len = ac.sampleRate * 3, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+  let b = 0;
+  for (let i=0;i<len;i++){
+    const w = Math.random()*2 - 1;
+    b = .985*b + .015*w;
+    const crackle = Math.random() < .045 ? (Math.random()*2 - 1) * 2.4 : 0;
+    d[i] = (w*.55 + b*2.2 + crackle) * (.55 + .45*Math.random());
+  }
+  grain = buf;
+  pencilBus = ac.createGain(); pencilBus.gain.value = 1.0;
+  const hp = ac.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 650;
+  const pk = ac.createBiquadFilter(); pk.type = 'peaking'; pk.frequency.value = 3200; pk.Q.value = .7; pk.gain.value = 5;
+  const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 7800;
+  pencilBus.connect(hp).connect(pk).connect(lp).connect(ac.destination);
 }
-function placePencil(s){
-  pencil.style.transform = `translate(${s.offsetLeft + s.offsetWidth - 4}px, ${s.offsetTop - 18}px)`;
+function scratch(span){
+  if (!ac || !musicOn) return;
+  if (!grain) makeGrain();
+  let t = ac.currentTime + .005;
+  const strokes = 1 + Math.floor(Math.random()*3), total = span * (.7 + Math.random()*.25);
+  for (let k=0;k<strokes;k++){
+    const len = total / strokes * (.65 + Math.random()*.3), gap = total / strokes - len;
+    const src = ac.createBufferSource(); src.buffer = grain; src.playbackRate.value = .85 + Math.random()*.35;
+    const g = ac.createGain(), v = .16 + Math.random()*.12;
+    g.gain.setValueAtTime(.0001, t);
+    g.gain.exponentialRampToValueAtTime(v, t + .006);
+    g.gain.setValueAtTime(v * (.7 + Math.random()*.3), t + len*.6);
+    g.gain.exponentialRampToValueAtTime(.0001, t + len);
+    src.connect(g).connect(pencilBus);
+    src.start(t, Math.random()*2.5, len + .02);
+    t += len + gap;
+  }
 }
 function follow(s){
   if (performance.now() < userHold) return;
@@ -458,32 +484,36 @@ function follow(s){
   const over = r.bottom - (dr.top + dr.height*.62);
   if (over > 0) deck.scrollTop += Math.min(over, 6) ;
 }
-function finishLetter(){
+function finishLetter(auto){
   writing = false; clearTimeout(writeTimer);
   letter.classList.add('done'); chars.forEach(s => s && s !== 'para' && s.classList.add('on'));
-  pencil.classList.remove('on'); skipBtn.hidden = true;
+  skipBtn.hidden = true;
   deck.style.scrollSnapType = '';
+  if (auto === true) setTimeout(() => {
+    const r = screens[1].getBoundingClientRect(), dr = deck.getBoundingClientRect();
+    if (r.bottom > dr.top + 40 && r.top < dr.bottom) goTo(screens[2]);
+  }, 3500);
 }
-skipBtn.addEventListener('click', finishLetter);
+skipBtn.addEventListener('click', () => finishLetter(false));
 function showLetter(){
-  if (reduce){ finishLetter(); return; }
+  if (reduce){ finishLetter(false); return; }
   writing = true; deck.style.scrollSnapType = 'none'; skipBtn.hidden = false;
   let i = 0;
-  setTimeout(() => pencil.classList.add('on'), 700);
   const followLoop = () => { if (!writing) return; const last = chars.slice(0, i).reverse().find(c => c && c !== 'para'); if (last) follow(last); requestAnimationFrame(followLoop); };
   requestAnimationFrame(followLoop);
   const step = () => {
     if (!writing) return;
-    if (i >= chars.length){ setTimeout(finishLetter, 600); return; }
+    if (i >= chars.length){ setTimeout(() => finishLetter(true), 600); return; }
     const s = chars[i++];
-    let wait = 62 + Math.random()*40;
+    let wait = 70 + Math.random()*45;
     if (s === 'para') wait = 650;
     else if (s === null) wait = 260;
     else {
-      s.classList.add('on'); placePencil(s);
+      s.classList.add('on');
       const c = s.textContent;
-      if (c === ' ') wait = 70;
-      else scratch();
+      if (c === ' ') wait = 80;
+      else if (c === '.' || c === ',') scratch(.05);
+      else scratch(wait / 1000);
       if (c === '.' || c === '?' || c === '!') wait = 420;
       else if (c === ',') wait = 240;
     }
