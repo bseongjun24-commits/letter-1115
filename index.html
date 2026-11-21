@@ -321,6 +321,12 @@ const whenSeen = (el, fn, threshold = .25) => {
   io.observe(el);
 };
 function goTo(el){ glideTo(el.offsetTop); }
+function revealNext(sec){
+  const nb = sec.querySelector('.next');
+  const target = sec.offsetTop + sec.offsetHeight - deck.clientHeight;
+  if (target > deck.scrollTop + 4) glideTo(target, true);
+  if (nb) nb.classList.add('ready');
+}
 function glideTo(end, holdSnap){
   const start = deck.scrollTop;
   if (reduce || Math.abs(end - start) < 2){ deck.scrollTop = end; return; }
@@ -586,6 +592,10 @@ CONFIG.reasons.forEach((r, i) => {
   b.addEventListener('click', () => {
     b.classList.toggle('flip');
     if (b.classList.contains('flip')){ b.setAttribute('aria-label', r); setTimeout(() => rise(9, 0, b.getBoundingClientRect()), 250); }
+    if (!rbox.dataset.done && rbox.querySelectorAll('.reason.flip').length === CONFIG.reasons.length){
+      rbox.dataset.done = '1';
+      setTimeout(() => revealNext(rbox.closest('.screen')), 1600);
+    }
   });
   rbox.appendChild(b);
 });
@@ -603,12 +613,7 @@ const more = document.createElement('li'); more.className = 'more'; more.textCon
 whenSeen(fut, () => {
   const items = [...fut.querySelectorAll('li:not(.more)')];
   items.forEach((li, i) => setTimeout(() => li.classList.add('on'), reduce ? 0 : 600 + i*800));
-  setTimeout(() => {
-    const sec = fut.closest('.screen'), nb = sec.querySelector('.next');
-    const target = sec.offsetTop + sec.offsetHeight - deck.clientHeight;
-    if (target > deck.scrollTop + 4) glideTo(target, true);
-    if (nb) nb.classList.add('ready');
-  }, reduce ? 0 : 600 + items.length*800 + 700);
+  setTimeout(() => revealNext(fut.closest('.screen')), reduce ? 0 : 600 + items.length*800 + 700);
 }, .3);
 
 /* ---------- finale: stars gather into a heart ---------- */
