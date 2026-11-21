@@ -340,18 +340,23 @@ const whenSeen = (el, fn, threshold = .25) => {
 };
 function goTo(el){ glideTo(el.offsetTop); }
 /* a floating "다음" button that appears over the screen when it's time to move on, so no scrolling is needed */
-let fnextFrom = -1;
+/* screens with a gate show "다음" only after their moment is done; the others show it as soon as you arrive */
+let activeIdx = 0, nextTimer = null;
+const gates = {'s-letter': false, 's-reasons': false, 's-future': false};
 const fnext = document.createElement('button');
-fnext.type = 'button'; fnext.className = 'float-next'; fnext.id = 'float-next';
+fnext.type = 'button'; fnext.className = 'float-next'; fnext.id = 'float-next'; fnext.setAttribute('aria-label', '다음 화면으로');
 fnext.innerHTML = '<span>다음</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 document.body.appendChild(fnext);
-function hideFloatNext(){ fnext.classList.remove('show'); fnextFrom = -1; }
-fnext.addEventListener('click', () => { const to = screens[fnextFrom + 1]; hideFloatNext(); if (to) goTo(to); });
+function canNext(i){ const id = screens[i].id; return i > 0 && i < screens.length - 1 && (!(id in gates) || gates[id]); }
+function hideFloatNext(){ clearTimeout(nextTimer); fnext.classList.remove('show'); }
+function syncNext(delay = 350){
+  hideFloatNext();
+  if (canNext(activeIdx)) nextTimer = setTimeout(() => { if (canNext(activeIdx)) fnext.classList.add('show'); }, delay);
+}
+fnext.addEventListener('click', () => { const to = screens[activeIdx + 1]; hideFloatNext(); if (to) goTo(to); });
 function revealNext(sec){
-  const i = screens.indexOf(sec);
-  if (i < 0 || i >= screens.length - 1) return;
-  const nb = sec.querySelector('.next'); if (nb) nb.classList.add('ready');
-  fnextFrom = i; fnext.classList.add('show');
+  if (sec.id in gates) gates[sec.id] = true;
+  if (screens.indexOf(sec) === activeIdx) syncNext(150);
 }
 function glideTo(end, holdSnap){
   const start = deck.scrollTop;
@@ -373,27 +378,23 @@ function glideTo(end, holdSnap){
   })(t0);
 }
 
-/* ---------- next arrows + page dots ---------- */
+/* ---------- page dots + which screen is showing (the one under the middle of the view) ---------- */
 const dots = document.getElementById('dots');
-screens.forEach((s, i) => {
-  const d = document.createElement('i'); dots.appendChild(d);
-  if (i === 0 || i === screens.length - 1) return;
-  const b = document.createElement('button'); b.type = 'button'; b.className = 'next'; b.id = 'next-' + i;
-  b.innerHTML = '<span>다음</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
-  b.setAttribute('aria-label', '다음 화면으로');
-  b.addEventListener('click', () => goTo(screens[i+1]));
-  s.appendChild(b);
-});
-if ('IntersectionObserver' in window){
-  const io = new IntersectionObserver(es => es.forEach(e => {
-    if (!e.isIntersecting) return;
-    const i = screens.indexOf(e.target);
-    [...dots.children].forEach((d, k) => d.classList.toggle('on', k === i));
-    if (fnextFrom >= 0 && i !== fnextFrom) hideFloatNext();
-    dots.classList.toggle('dark', e.target.classList.contains('night'));
-  }), {root: deck, threshold: .55});
-  screens.forEach(s => io.observe(s));
+screens.forEach(() => dots.appendChild(document.createElement('i')));
+function markDots(i){
+  [...dots.children].forEach((d, k) => d.classList.toggle('on', k === i));
+  dots.classList.toggle('dark', screens[i].classList.contains('night'));
 }
+markDots(0);
+let activeQueued = false;
+function updateActive(){
+  activeQueued = false;
+  const c = deck.scrollTop + deck.clientHeight * .5;
+  let i = screens.findIndex(s => c >= s.offsetTop && c < s.offsetTop + s.offsetHeight);
+  if (i < 0) i = screens.length - 1;
+  if (i !== activeIdx){ activeIdx = i; markDots(i); syncNext(); }
+}
+deck.addEventListener('scroll', () => { if (!activeQueued){ activeQueued = true; requestAnimationFrame(updateActive); } }, {passive: true});
 
 /* ---------- soft music box ---------- */
 let ac = null, master = null, musicOn = false, loopTimer = null;
@@ -564,6 +565,7 @@ function finishLetter(auto){
   if (ac && musicOn) master.gain.setTargetAtTime(.85, ac.currentTime, .6);
   letter.classList.add('done'); chars.forEach(s => s && s !== 'para' && s.classList.add('on'));
   skipBtn.hidden = true;
+  revealNext(screens[1]);
   deck.style.scrollSnapType = '';
   if (auto === true) setTimeout(() => {
     const r = screens[1].getBoundingClientRect(), dr = deck.getBoundingClientRect();
@@ -621,7 +623,7 @@ CONFIG.reasons.forEach((r, i) => {
     if (b.classList.contains('flip')){ b.setAttribute('aria-label', r); setTimeout(() => rise(9, 0, b.getBoundingClientRect()), 250); }
     if (!rbox.dataset.done && rbox.querySelectorAll('.reason.flip').length === CONFIG.reasons.length){
       rbox.dataset.done = '1';
-      setTimeout(() => revealNext(rbox.closest('.screen')), 1600);
+      setTimeout(() => revealNext(rbox.closest('.screen')), 600);
     }
   });
   rbox.appendChild(b);
@@ -642,7 +644,6 @@ function fitInvite(){
 }
 fitInvite(); addEventListener('resize', fitInvite);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitInvite);
-whenSeen(invSec, () => setTimeout(() => revealNext(invSec), reduce ? 0 : 900), .3);
 
 /* ---------- future birthdays (Nov 15) ---------- */
 const fut = document.getElementById('future');
@@ -656,8 +657,8 @@ for (let i=1;i<=5;i++){
 const more = document.createElement('li'); more.className = 'more'; more.textContent = '앞으로의 11월 15일은, 무슨 일이 있어도 누나가 주인공이야'; fut.appendChild(more);
 whenSeen(fut, () => {
   const items = [...fut.querySelectorAll('li:not(.more)')];
-  items.forEach((li, i) => setTimeout(() => li.classList.add('on'), reduce ? 0 : 600 + i*800));
-  setTimeout(() => revealNext(fut.closest('.screen')), reduce ? 0 : 600 + items.length*800 + 700);
+  items.forEach((li, i) => setTimeout(() => li.classList.add('on'), reduce ? 0 : 500 + i*550));
+  setTimeout(() => revealNext(fut.closest('.screen')), reduce ? 0 : 500 + items.length*550 + 300);
 }, .3);
 
 /* ---------- finale: hStars gather into a beating heart; hold it to fill it, then it bursts into fireworks over the bridge ---------- */
@@ -709,7 +710,7 @@ function drawBridge(t){
   }
   g2.globalCompositeOperation = 'source-over';
 }
-function bell(n, when = 0, vol = .1){ if (ac && musicOn) pluck(hz(n), ac.currentTime + .02 + when, 2.6, vol); }
+function bell(){ /* finale stays with the background music only */ }
 function launch(x, ty, kind){
   rockets.push({x, y: H*.86, vx: (Math.random() - .5)*.6, vy: -(Math.sqrt(2*.06*(H*.86 - ty)) ), ty, kind: kind || (Math.random() < .45 ? 'heart' : 'ring'), pal: [PINKS, GOLDS, LILAC][Math.floor(Math.random()*3)]});
 }
