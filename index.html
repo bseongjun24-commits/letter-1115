@@ -44,6 +44,10 @@ body{margin:0;background:var(--night);color:var(--ink);font-family:var(--f-ui);f
 .next svg{width:22px;height:22px;animation:nudge 1.8s ease-in-out infinite}
 .next:focus-visible{outline:2px solid var(--rose-deep);outline-offset:2px;border-radius:8px}
 .next.ready{color:var(--rose-deep);background:#FBEAEE;border-radius:999px;box-shadow:0 0 0 0 rgba(181,103,124,.45);animation:ping 1.8s ease-out infinite}
+.float-next{position:fixed;z-index:45;left:50%;bottom:calc(22px + env(safe-area-inset-bottom, 0px));transform:translate(-50%, 24px);opacity:0;pointer-events:none;display:flex;align-items:center;gap:6px;font:inherit;font-size:15px;letter-spacing:.08em;color:#fff;background:var(--rose-deep);border:0;border-radius:999px;padding:12px 26px 12px 30px;cursor:pointer;box-shadow:0 8px 20px -8px rgba(120,50,70,.55);transition:opacity .45s ease, transform .45s ease}
+.float-next svg{width:18px;height:18px}
+.float-next.show{opacity:1;transform:translate(-50%, 0);pointer-events:auto;animation:ping 1.8s ease-out .5s infinite}
+.float-next:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 @keyframes ping{0%{box-shadow:0 0 0 0 rgba(181,103,124,.45)}100%{box-shadow:0 0 0 14px rgba(181,103,124,0)}}
 @keyframes nudge{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
 
@@ -127,27 +131,27 @@ body{margin:0;background:var(--night);color:var(--ink);font-family:var(--f-ui);f
 .reason .b{background:#FDEFF3;border:1px solid #F2C9D4;transform:rotateY(180deg);font-family:var(--f-letter);font-size:15px;line-height:1.7;color:var(--ink);word-break:keep-all}
 
 /* invitation */
-#s-invite{background:#EFE3E0}
-.invite{position:relative;background:#FFFCF8;border:1px solid #E8D3C4;outline:1px solid #D9B98A;outline-offset:-10px;border-radius:4px;padding:40px 30px 46px;text-align:center;box-shadow:0 14px 30px -18px rgba(90,60,50,.45), 0 2px 6px rgba(90,60,50,.08);color:var(--ink)}
+#s-invite{background:#EFE3E0;padding-block:28px 82px}
+.invite{position:relative;background:#FFFCF8;border:1px solid #E8D3C4;outline:1px solid #D9B98A;outline-offset:-10px;border-radius:4px;padding:30px 26px 36px;transform-origin:50% 0;text-align:center;box-shadow:0 14px 30px -18px rgba(90,60,50,.45), 0 2px 6px rgba(90,60,50,.08);color:var(--ink)}
 .invite .corner{position:absolute;width:34px;height:34px;color:#C9A46E}
 .invite .tl{left:16px;top:16px}
 .invite .tr{right:16px;top:16px;transform:scaleX(-1)}
 .invite .bl{left:16px;bottom:16px;transform:scaleY(-1)}
 .invite .br{right:16px;bottom:16px;transform:scale(-1,-1)}
 .inv-eyebrow{margin:0;font-size:11px;letter-spacing:.34em;color:#B8956A}
-.inv-script{margin:4px 0 0;font-family:var(--f-display);font-size:46px;line-height:1.1;color:var(--rose-deep)}
+.inv-script{margin:2px 0 0;font-family:var(--f-display);font-size:40px;line-height:1.1;color:var(--rose-deep)}
 .inv-to{margin:6px 0 0;font-family:var(--f-letter);font-size:15px;color:var(--ink-soft)}
-.inv-rule{display:flex;align-items:center;gap:10px;justify-content:center;margin:18px auto 18px;color:#D99AAA;max-width:220px}
+.inv-rule{display:flex;align-items:center;gap:10px;justify-content:center;margin:12px auto 12px;color:#D99AAA;max-width:220px}
 .inv-rule span{flex:1;height:1px;background:#E2CBB6}
 .inv-rule svg{width:14px;height:14px}
-.inv-title{font-family:var(--f-letter);font-weight:700;font-size:20px;line-height:1.6;margin:0 0 14px;text-wrap:balance}
-.inv-body{margin:0;color:var(--ink-soft);font-family:var(--f-letter);font-size:15px;line-height:2;word-break:keep-all}
-.inv-info{margin:22px 0 0;padding:16px 0 0;border-top:1px dashed #E2CBB6;display:grid;gap:8px;text-align:left}
+.inv-title{font-family:var(--f-letter);font-weight:700;font-size:18.5px;line-height:1.55;margin:0 0 10px;text-wrap:balance}
+.inv-body{margin:0;color:var(--ink-soft);font-family:var(--f-letter);font-size:14.5px;line-height:1.85;word-break:keep-all}
+.inv-info{margin:16px 0 0;padding:14px 0 0;border-top:1px dashed #E2CBB6;display:grid;gap:5px;text-align:left}
 .inv-info div{display:grid;grid-template-columns:64px minmax(0,1fr);gap:10px;align-items:baseline}
 .inv-info dt{font-size:12px;letter-spacing:.14em;color:#B8956A;text-align:right}
 .inv-info dd{margin:0;font-family:var(--f-letter);font-size:15px;word-break:keep-all}
 .inv-note{margin:22px 0 0;font-family:var(--f-letter);font-size:14px;color:var(--rose-deep)}
-.inv-from{margin:22px 0 0;font-family:var(--f-letter);font-size:14px;color:var(--ink-soft)}
+.inv-from{margin:16px 0 0;font-family:var(--f-letter);font-size:14px;color:var(--ink-soft)}
 .inv-seal{position:absolute;left:50%;bottom:-22px;width:44px;height:44px;margin-left:-22px;border-radius:50%;background:var(--rose-deep);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(120,50,70,.3), inset 0 0 0 3px rgba(255,255,255,.15)}
 .inv-seal svg{width:19px;height:19px}
 
@@ -320,11 +324,19 @@ const whenSeen = (el, fn, threshold = .25) => {
   io.observe(el);
 };
 function goTo(el){ glideTo(el.offsetTop); }
+/* a floating "다음" button that appears over the screen when it's time to move on, so no scrolling is needed */
+let fnextFrom = -1;
+const fnext = document.createElement('button');
+fnext.type = 'button'; fnext.className = 'float-next'; fnext.id = 'float-next';
+fnext.innerHTML = '<span>다음</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+document.body.appendChild(fnext);
+function hideFloatNext(){ fnext.classList.remove('show'); fnextFrom = -1; }
+fnext.addEventListener('click', () => { const to = screens[fnextFrom + 1]; hideFloatNext(); if (to) goTo(to); });
 function revealNext(sec){
-  const nb = sec.querySelector('.next');
-  const target = sec.offsetTop + sec.offsetHeight - deck.clientHeight;
-  if (target > deck.scrollTop + 4) glideTo(target, true);
-  if (nb) nb.classList.add('ready');
+  const i = screens.indexOf(sec);
+  if (i < 0 || i >= screens.length - 1) return;
+  const nb = sec.querySelector('.next'); if (nb) nb.classList.add('ready');
+  fnextFrom = i; fnext.classList.add('show');
 }
 function glideTo(end, holdSnap){
   const start = deck.scrollTop;
@@ -362,6 +374,7 @@ if ('IntersectionObserver' in window){
     if (!e.isIntersecting) return;
     const i = screens.indexOf(e.target);
     [...dots.children].forEach((d, k) => d.classList.toggle('on', k === i));
+    if (fnextFrom >= 0 && i !== fnextFrom) hideFloatNext();
     dots.classList.toggle('dark', e.target.classList.contains('night'));
   }), {root: deck, threshold: .55});
   screens.forEach(s => io.observe(s));
@@ -599,8 +612,22 @@ CONFIG.reasons.forEach((r, i) => {
   rbox.appendChild(b);
 });
 
-/* invitation: bring the next button into view right away */
-whenSeen(document.getElementById('s-invite'), () => setTimeout(() => revealNext(document.getElementById('s-invite')), reduce ? 0 : 900), .5);
+/* invitation: shrink the card to fit one phone screen, then offer the next button right away */
+const invSec = document.getElementById('s-invite'), invCard = invSec.querySelector('.invite');
+function fitInvite(){
+  invCard.style.transform = ''; invCard.style.marginBottom = '';
+  const cs = getComputedStyle(invSec);
+  const avail = Math.min(deck.clientHeight, window.innerHeight) - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 26;
+  const h = invCard.offsetHeight;
+  if (h > avail && avail > 200){
+    const k = avail / h;
+    invCard.style.transform = `scale(${k.toFixed(3)})`;
+    invCard.style.marginBottom = `${-(h - h*k).toFixed(0)}px`;
+  }
+}
+fitInvite(); addEventListener('resize', fitInvite);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitInvite);
+whenSeen(invSec, () => setTimeout(() => revealNext(invSec), reduce ? 0 : 900), .3);
 
 /* ---------- future birthdays (Nov 15) ---------- */
 const fut = document.getElementById('future');
