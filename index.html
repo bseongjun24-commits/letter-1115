@@ -14,7 +14,7 @@
 <meta name="theme-color" content="#1A2138">
 <title>유리에게, 늦은 생일 편지</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Pinyon+Script&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Nanum+Pen+Script&family=Pinyon+Script&display=swap">
 <style>
 /* Layout: full-screen mobile pages that snap one by one inside a 440px column; tap the envelope to begin */
 :root{
@@ -101,11 +101,17 @@ body{margin:0;background:var(--night);color:var(--ink);font-family:var(--f-ui);f
 .hint{font-size:13px;color:var(--ink-soft);text-align:center;margin:16px 0 0}
 
 /* letter */
-.letter{font-family:var(--f-letter);font-size:16.5px;line-height:2.05;background:repeating-linear-gradient(to bottom, transparent 0 33px, var(--line) 33px 34px);padding:2px 0}
-.letter p{margin:0 0 34px;text-wrap:pretty;word-break:keep-all;transition:opacity 1.6s ease, transform 1.6s ease, filter 1.6s ease}
-.letter.wait p{opacity:.001;transform:translateY(10px);filter:blur(3px)}
-.letter .hello,.letter .last{font-weight:700;color:var(--rose-deep)}
+.letter{position:relative;font-family:'Nanum Pen Script', var(--f-letter);font-size:25px;line-height:36px;color:#4A4542;text-shadow:0 0 .6px rgba(60,55,52,.55);background:repeating-linear-gradient(to bottom, transparent 0 35px, var(--line) 35px 36px);padding:4px 2px 0}
+.letter p{margin:0 0 36px;word-break:keep-all}
+.letter .hello{font-size:28px}
 .letter .sign{text-align:right;margin-bottom:0}
+.letter .ch{opacity:0;transition:opacity .16s ease}
+.letter .ch.on{opacity:1}
+.letter.done .ch{opacity:1}
+.pencil{position:absolute;left:0;top:0;width:30px;height:30px;pointer-events:none;opacity:0;transition:opacity .4s, transform .09s linear;z-index:2}
+.pencil.on{opacity:1}
+.skip{display:block;margin:18px auto 0;font:inherit;font-size:13px;color:var(--ink-soft);background:none;border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;transition:opacity .4s}
+.skip[hidden]{display:none}
 
 /* reasons */
 .reasons{display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:10px}
@@ -280,7 +286,7 @@ function goTo(el){
     const k = Math.min(1, (now - t0) / dur);
     deck.scrollTop = start + (end - start) * ease(k);
     if (k < 1) requestAnimationFrame(frame);
-    else { deck.style.scrollSnapType = ''; deck.style.scrollBehavior = ''; }
+    else { if (!writing) deck.style.scrollSnapType = ''; deck.style.scrollBehavior = ''; }
   })(t0);
 }
 
@@ -409,11 +415,81 @@ function floatStep(){
 
 /* ---------- envelope: open, letter rises out, then glide to the letter page ---------- */
 const env = document.getElementById('env'), tap = document.getElementById('tap'), letter = document.getElementById('letter');
-const paras = [...letter.querySelectorAll('p')];
-if (!reduce) letter.classList.add('wait');
+/* letter is written by pencil, one character at a time, while the page follows along */
+const chars = [];
+letter.querySelectorAll('p').forEach(p => {
+  const walk = node => [...node.childNodes].forEach(n => {
+    if (n.nodeType === 3){
+      const frag = document.createDocumentFragment();
+      for (const c of n.textContent){ const s = document.createElement('span'); s.className = 'ch'; s.textContent = c; frag.appendChild(s); chars.push(s); }
+      n.replaceWith(frag);
+    } else if (n.nodeName === 'BR'){ chars.push(null); } else walk(n);
+  });
+  walk(p);
+  chars.push('para');
+});
+const pencil = document.createElement('span'); pencil.className = 'pencil'; pencil.setAttribute('aria-hidden','true');
+pencil.innerHTML = '<svg viewBox="0 0 32 32"><g transform="rotate(-38 16 16)"><rect x="13" y="0" width="6" height="22" rx="1" fill="#E9B949"/><rect x="13" y="0" width="6" height="4" fill="#D98FA0"/><rect x="13" y="4" width="6" height="2" fill="#B9B4AE"/><path d="M13 22 L16 30 L19 22Z" fill="#EBC9A0"/><path d="M15.1 27.6 L16 30 L16.9 27.6Z" fill="#4A4542"/></g></svg>';
+letter.appendChild(pencil);
+const skipBtn = document.createElement('button'); skipBtn.type = 'button'; skipBtn.className = 'skip'; skipBtn.id = 'skip'; skipBtn.textContent = '한 번에 다 보기'; skipBtn.hidden = true;
+letter.after(skipBtn);
+
+let writing = false, writeTimer = null, userHold = 0;
+['wheel','touchstart'].forEach(ev => deck.addEventListener(ev, () => { if (writing) userHold = performance.now() + 2500; }, {passive: true}));
+
+function scratch(){
+  if (!ac || !musicOn) return;
+  const len = .05 + Math.random()*.05, t = ac.currentTime;
+  const buf = ac.createBuffer(1, Math.ceil(ac.sampleRate*len), ac.sampleRate), d = buf.getChannelData(0);
+  for (let i=0;i<d.length;i++) d[i] = (Math.random()*2 - 1) * (.6 + .4*Math.sin(i/(12+Math.random()*6)));
+  const src = ac.createBufferSource(); src.buffer = buf;
+  const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2600 + Math.random()*2600; bp.Q.value = .9;
+  const hp = ac.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1400;
+  const g = ac.createGain(); const v = .05 + Math.random()*.04;
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(v, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + len);
+  src.connect(bp).connect(hp).connect(g).connect(ac.destination); src.start(t); src.stop(t + len + .02);
+}
+function placePencil(s){
+  pencil.style.transform = `translate(${s.offsetLeft + s.offsetWidth - 4}px, ${s.offsetTop - 18}px)`;
+}
+function follow(s){
+  if (performance.now() < userHold) return;
+  const r = s.getBoundingClientRect(), dr = deck.getBoundingClientRect();
+  const over = r.bottom - (dr.top + dr.height*.62);
+  if (over > 0) deck.scrollTop += Math.min(over, 6) ;
+}
+function finishLetter(){
+  writing = false; clearTimeout(writeTimer);
+  letter.classList.add('done'); chars.forEach(s => s && s !== 'para' && s.classList.add('on'));
+  pencil.classList.remove('on'); skipBtn.hidden = true;
+  deck.style.scrollSnapType = '';
+}
+skipBtn.addEventListener('click', finishLetter);
 function showLetter(){
-  paras.forEach((p, i) => p.style.transitionDelay = (.6 + i*1.4) + 's');
-  requestAnimationFrame(() => letter.classList.remove('wait'));
+  if (reduce){ finishLetter(); return; }
+  writing = true; deck.style.scrollSnapType = 'none'; skipBtn.hidden = false;
+  let i = 0;
+  setTimeout(() => pencil.classList.add('on'), 700);
+  const followLoop = () => { if (!writing) return; const last = chars.slice(0, i).reverse().find(c => c && c !== 'para'); if (last) follow(last); requestAnimationFrame(followLoop); };
+  requestAnimationFrame(followLoop);
+  const step = () => {
+    if (!writing) return;
+    if (i >= chars.length){ setTimeout(finishLetter, 600); return; }
+    const s = chars[i++];
+    let wait = 62 + Math.random()*40;
+    if (s === 'para') wait = 650;
+    else if (s === null) wait = 260;
+    else {
+      s.classList.add('on'); placePencil(s);
+      const c = s.textContent;
+      if (c === ' ') wait = 70;
+      else scratch();
+      if (c === '.' || c === '?' || c === '!') wait = 420;
+      else if (c === ',') wait = 240;
+    }
+    writeTimer = setTimeout(step, wait);
+  };
+  writeTimer = setTimeout(step, 1100);
 }
 env.addEventListener('click', () => {
   if (env.classList.contains('open')) return;
