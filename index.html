@@ -147,7 +147,7 @@ body{margin:0;background:var(--night);color:var(--ink);font-family:var(--f-ui);f
 .inv-info dt{font-size:12px;letter-spacing:.14em;color:#B8956A;text-align:right}
 .inv-info dd{margin:0;font-family:var(--f-letter);font-size:15px;word-break:keep-all}
 .inv-note{margin:22px 0 0;font-family:var(--f-letter);font-size:14px;color:var(--rose-deep)}
-.inv-from{margin:6px 0 0;font-family:var(--f-letter);font-size:14px;color:var(--ink-soft)}
+.inv-from{margin:22px 0 0;font-family:var(--f-letter);font-size:14px;color:var(--ink-soft)}
 .inv-seal{position:absolute;left:50%;bottom:-22px;width:44px;height:44px;margin-left:-22px;border-radius:50%;background:var(--rose-deep);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(120,50,70,.3), inset 0 0 0 3px rgba(255,255,255,.15)}
 .inv-seal svg{width:19px;height:19px}
 
@@ -268,7 +268,6 @@ body{margin:0;background:var(--night);color:var(--ink);font-family:var(--f-ui);f
         <div><dt>주인공</dt><dd>유리</dd></div>
         <div><dt>준비물</dt><dd>누나 몸만 오면 돼</dd></div>
       </dl>
-      <p class="inv-note">참석 여부는 묻지 않을게. 꼭 와줘.</p>
       <p class="inv-from">From. 성부바</p>
       <span class="inv-seal" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="#FAF6F1" d="M12 21s-7.5-4.6-9.3-9.2C1.5 8.6 3.6 5 7.1 5c2 0 3.4 1.1 4.9 2.9C13.5 6.1 14.9 5 16.9 5c3.5 0 5.6 3.6 4.4 6.8C19.5 16.4 12 21 12 21z"/></svg></span>
     </div>
@@ -599,6 +598,9 @@ CONFIG.reasons.forEach((r, i) => {
   });
   rbox.appendChild(b);
 });
+
+/* invitation: bring the next button into view right away */
+whenSeen(document.getElementById('s-invite'), () => setTimeout(() => revealNext(document.getElementById('s-invite')), reduce ? 0 : 900), .5);
 
 /* ---------- future birthdays (Nov 15) ---------- */
 const fut = document.getElementById('future');
