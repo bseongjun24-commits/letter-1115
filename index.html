@@ -119,16 +119,35 @@ body{margin:0;background:var(--night);color:var(--ink);font-family:var(--f-ui);f
 .reason .in{position:relative;display:block;width:100%;height:100%;transition:transform .9s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
 .reason.flip .in{transform:rotateY(180deg)}
 .reason .f,.reason .b{position:absolute;inset:0;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;backface-visibility:hidden;-webkit-backface-visibility:hidden;text-align:center}
-.reason .f{background:var(--night);color:var(--gold)}
-.reason .f b{font-family:var(--f-display);font-weight:400;font-size:40px;color:var(--moon);line-height:1}
+.reason .f{background:#E7A3B5;color:#FFF0F4;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+.reason .f b{font-family:var(--f-display);font-weight:400;font-size:42px;color:#FFFFFF;line-height:1}
 .reason .f span{font-size:12px;letter-spacing:.2em;margin-top:6px}
-.reason .b{background:var(--paper);border:1px solid var(--line);transform:rotateY(180deg);font-family:var(--f-letter);font-size:15px;line-height:1.7;color:var(--ink);word-break:keep-all}
+.reason .b{background:#FDEFF3;border:1px solid #F2C9D4;transform:rotateY(180deg);font-family:var(--f-letter);font-size:15px;line-height:1.7;color:var(--ink);word-break:keep-all}
 
 /* invitation */
-.quiet{background:var(--paper-2);border:1px solid var(--line);border-radius:16px;padding:30px 22px;text-align:center}
-.quiet h3{font-family:var(--f-letter);font-weight:700;font-size:20px;margin:0 0 14px}
-.quiet p{margin:0;color:var(--ink-soft);font-family:var(--f-letter);line-height:2;word-break:keep-all}
-.quiet .place{display:inline-block;margin-top:18px;font-size:13px;letter-spacing:.14em;color:var(--rose-deep)}
+#s-invite{background:#EFE3E0}
+.invite{position:relative;background:#FFFCF8;border:1px solid #E8D3C4;outline:1px solid #D9B98A;outline-offset:-10px;border-radius:4px;padding:40px 30px 46px;text-align:center;box-shadow:0 14px 30px -18px rgba(90,60,50,.45), 0 2px 6px rgba(90,60,50,.08);color:var(--ink)}
+.invite .corner{position:absolute;width:34px;height:34px;color:#C9A46E}
+.invite .tl{left:16px;top:16px}
+.invite .tr{right:16px;top:16px;transform:scaleX(-1)}
+.invite .bl{left:16px;bottom:16px;transform:scaleY(-1)}
+.invite .br{right:16px;bottom:16px;transform:scale(-1,-1)}
+.inv-eyebrow{margin:0;font-size:11px;letter-spacing:.34em;color:#B8956A}
+.inv-script{margin:4px 0 0;font-family:var(--f-display);font-size:46px;line-height:1.1;color:var(--rose-deep)}
+.inv-to{margin:6px 0 0;font-family:var(--f-letter);font-size:15px;color:var(--ink-soft)}
+.inv-rule{display:flex;align-items:center;gap:10px;justify-content:center;margin:18px auto 18px;color:#D99AAA;max-width:220px}
+.inv-rule span{flex:1;height:1px;background:#E2CBB6}
+.inv-rule svg{width:14px;height:14px}
+.inv-title{font-family:var(--f-letter);font-weight:700;font-size:20px;line-height:1.6;margin:0 0 14px;text-wrap:balance}
+.inv-body{margin:0;color:var(--ink-soft);font-family:var(--f-letter);font-size:15px;line-height:2;word-break:keep-all}
+.inv-info{margin:22px 0 0;padding:16px 0 0;border-top:1px dashed #E2CBB6;display:grid;gap:8px;text-align:left}
+.inv-info div{display:grid;grid-template-columns:64px minmax(0,1fr);gap:10px;align-items:baseline}
+.inv-info dt{font-size:12px;letter-spacing:.14em;color:#B8956A;text-align:right}
+.inv-info dd{margin:0;font-family:var(--f-letter);font-size:15px;word-break:keep-all}
+.inv-note{margin:22px 0 0;font-family:var(--f-letter);font-size:14px;color:var(--rose-deep)}
+.inv-from{margin:6px 0 0;font-family:var(--f-letter);font-size:14px;color:var(--ink-soft)}
+.inv-seal{position:absolute;left:50%;bottom:-22px;width:44px;height:44px;margin-left:-22px;border-radius:50%;background:var(--rose-deep);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(120,50,70,.3), inset 0 0 0 3px rgba(255,255,255,.15)}
+.inv-seal svg{width:19px;height:19px}
 
 /* promises */
 .promises{list-style:none;margin:0;padding:0;display:grid;gap:10px}
@@ -230,11 +249,26 @@ body{margin:0;background:var(--night);color:var(--ink);font-family:var(--f-ui);f
   </section>
 
   <section class="screen paper" id="s-invite">
-    <h2 class="sec-title"><em>Invitation</em><span>늦은 생일 초대장</span></h2>
-    <div class="quiet">
-      <h3>누나를 위한 하루에 초대할게</h3>
-      <p>광안대교 보이는 방에서 쉬고,<br>저녁엔 분위기 좋은 곳에서 와인 한 잔 하면서 맛있는 거 먹고,<br>밤에는 케이크 앞에서 소원 빌자.<br>오늘은 누나가 주인공이야.</p>
-      <span class="place">광안리 · 11월 22일 일요일</span>
+    <div class="invite">
+      <svg class="corner tl" viewBox="0 0 40 40" aria-hidden="true"><path d="M2 38 V14 Q2 2 14 2 H38" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M8 38 V18 Q8 8 18 8 H38" fill="none" stroke="currentColor" stroke-width=".7"/><circle cx="14" cy="14" r="2" fill="currentColor"/></svg>
+      <svg class="corner tr" viewBox="0 0 40 40" aria-hidden="true"><path d="M2 38 V14 Q2 2 14 2 H38" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M8 38 V18 Q8 8 18 8 H38" fill="none" stroke="currentColor" stroke-width=".7"/><circle cx="14" cy="14" r="2" fill="currentColor"/></svg>
+      <svg class="corner bl" viewBox="0 0 40 40" aria-hidden="true"><path d="M2 38 V14 Q2 2 14 2 H38" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M8 38 V18 Q8 8 18 8 H38" fill="none" stroke="currentColor" stroke-width=".7"/><circle cx="14" cy="14" r="2" fill="currentColor"/></svg>
+      <svg class="corner br" viewBox="0 0 40 40" aria-hidden="true"><path d="M2 38 V14 Q2 2 14 2 H38" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M8 38 V18 Q8 8 18 8 H38" fill="none" stroke="currentColor" stroke-width=".7"/><circle cx="14" cy="14" r="2" fill="currentColor"/></svg>
+      <p class="inv-eyebrow">YOU ARE INVITED</p>
+      <p class="inv-script">Invitation</p>
+      <p class="inv-to">To. 유리</p>
+      <div class="inv-rule" aria-hidden="true"><span></span><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 21s-7.5-4.6-9.3-9.2C1.5 8.6 3.6 5 7.1 5c2 0 3.4 1.1 4.9 2.9C13.5 6.1 14.9 5 16.9 5c3.5 0 5.6 3.6 4.4 6.8C19.5 16.4 12 21 12 21z"/></svg><span></span></div>
+      <h3 class="inv-title">누나를 위한 하루에<br>정식으로 초대할게</h3>
+      <p class="inv-body">광안대교 보이는 방에서 쉬고,<br>저녁엔 분위기 좋은 곳에서<br>와인 한 잔 하면서 맛있는 거 먹고,<br>밤에는 케이크 앞에서 소원 빌자.</p>
+      <dl class="inv-info">
+        <div><dt>일시</dt><dd>2026년 11월 22일 일요일</dd></div>
+        <div><dt>장소</dt><dd>부산 광안리</dd></div>
+        <div><dt>주인공</dt><dd>유리</dd></div>
+        <div><dt>준비물</dt><dd>누나 몸만 오면 돼</dd></div>
+      </dl>
+      <p class="inv-note">참석 여부는 묻지 않을게. 꼭 와줘.</p>
+      <p class="inv-from">From. 성부바</p>
+      <span class="inv-seal" aria-hidden="true"><svg viewBox="0 0 24 24"><path fill="#FAF6F1" d="M12 21s-7.5-4.6-9.3-9.2C1.5 8.6 3.6 5 7.1 5c2 0 3.4 1.1 4.9 2.9C13.5 6.1 14.9 5 16.9 5c3.5 0 5.6 3.6 4.4 6.8C19.5 16.4 12 21 12 21z"/></svg></span>
     </div>
   </section>
 
@@ -403,11 +437,15 @@ sizeSky(); addEventListener('resize', sizeSky); requestAnimationFrame(drawSky);
 /* ---------- gentle floating hearts ---------- */
 const fl = document.getElementById('float'), fctx = fl.getContext('2d');
 let floats = [], floating = false;
-function rise(n = 10, fromY = .9){
+function rise(n = 10, fromY = .9, rect = null){
   if (reduce) return;
   const dpr = Math.min(devicePixelRatio||1, 2);
-  fl.width = innerWidth*dpr; fl.height = innerHeight*dpr; fctx.setTransform(dpr,0,0,dpr,0,0);
-  for (let i=0;i<n;i++) floats.push({x: innerWidth*(.3+Math.random()*.4), y: innerHeight*fromY + Math.random()*30, s: Math.random()*5+6, vy: -(Math.random()*.6+.5), ph: Math.random()*6.28, life: 0, c: ['#D99AAA','#E3C58E','#F2D3DA'][i%3]});
+  if (!floating){ fl.width = innerWidth*dpr; fl.height = innerHeight*dpr; fctx.setTransform(dpr,0,0,dpr,0,0); }
+  for (let i=0;i<n;i++){
+    const x = rect ? rect.left + rect.width*(.2 + Math.random()*.6) : innerWidth*(.3+Math.random()*.4);
+    const y = rect ? rect.top + rect.height*(.35 + Math.random()*.4) : innerHeight*fromY + Math.random()*30;
+    floats.push({x, y, s: rect ? Math.random()*4+5 : Math.random()*5+6, vy: rect ? -(Math.random()*1.1+1.1) : -(Math.random()*.6+.5), ph: Math.random()*6.28, life: rect ? 90 : 0, c: ['#E58AA3','#F2B8C6','#D96C8C','#F7D3DC'][i%4]});
+  }
   if (!floating){ floating = true; requestAnimationFrame(floatStep); }
 }
 function heartPath(c, s){ c.beginPath(); c.moveTo(0, s*.35); c.bezierCurveTo(-s, -s*.3, -s*.4, -s, 0, -s*.4); c.bezierCurveTo(s*.4, -s, s, -s*.3, 0, s*.35); c.fill(); }
@@ -536,7 +574,10 @@ CONFIG.reasons.forEach((r, i) => {
   const b = document.createElement('button'); b.type = 'button'; b.className = 'reason'; b.id = 'reason-' + i;
   b.setAttribute('aria-label', (i+1) + '번째 이유 카드');
   b.innerHTML = `<span class="in"><span class="f"><b>${i+1}</b><span>REASON</span></span><span class="b">${r}</span></span>`;
-  b.addEventListener('click', () => { b.classList.toggle('flip'); if (b.classList.contains('flip')) b.setAttribute('aria-label', r); });
+  b.addEventListener('click', () => {
+    b.classList.toggle('flip');
+    if (b.classList.contains('flip')){ b.setAttribute('aria-label', r); setTimeout(() => rise(9, 0, b.getBoundingClientRect()), 250); }
+  });
   rbox.appendChild(b);
 });
 
