@@ -475,8 +475,9 @@ function scratch(span){
 function follow(s){
   if (performance.now() < userHold) return;
   const r = s.getBoundingClientRect(), dr = deck.getBoundingClientRect();
-  const over = r.bottom - (dr.top + dr.height*.62);
-  if (over > 0) deck.scrollTop += Math.min(over, 6) ;
+  const vh = window.visualViewport ? Math.min(dr.bottom, window.visualViewport.height) - dr.top : dr.height;
+  const over = r.bottom - (dr.top + vh*.45);
+  if (over > 0) deck.scrollTop += Math.max(1.5, over * .14);
 }
 function finishLetter(auto){
   writing = false; clearTimeout(writeTimer);
