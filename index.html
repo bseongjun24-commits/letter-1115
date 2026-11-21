@@ -43,6 +43,8 @@ body{margin:0;background:var(--night);color:var(--ink);font-family:var(--f-ui);f
 .night .next{color:var(--mist)}
 .next svg{width:22px;height:22px;animation:nudge 1.8s ease-in-out infinite}
 .next:focus-visible{outline:2px solid var(--rose-deep);outline-offset:2px;border-radius:8px}
+.next.ready{color:var(--rose-deep);background:#FBEAEE;border-radius:999px;box-shadow:0 0 0 0 rgba(181,103,124,.45);animation:ping 1.8s ease-out infinite}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(181,103,124,.45)}100%{box-shadow:0 0 0 14px rgba(181,103,124,0)}}
 @keyframes nudge{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
 
 /* page dots */
@@ -318,8 +320,9 @@ const whenSeen = (el, fn, threshold = .25) => {
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ io.disconnect(); fn(); } }), {root: deck, threshold});
   io.observe(el);
 };
-function goTo(el){
-  const start = deck.scrollTop, end = el.offsetTop;
+function goTo(el){ glideTo(el.offsetTop); }
+function glideTo(end, holdSnap){
+  const start = deck.scrollTop;
   if (reduce || Math.abs(end - start) < 2){ deck.scrollTop = end; return; }
   deck.style.scrollSnapType = 'none'; deck.style.scrollBehavior = 'auto';
   const dur = Math.min(1100, 500 + Math.abs(end - start) * .4), t0 = performance.now();
@@ -328,7 +331,13 @@ function goTo(el){
     const k = Math.min(1, (now - t0) / dur);
     deck.scrollTop = start + (end - start) * ease(k);
     if (k < 1) requestAnimationFrame(frame);
-    else { if (!writing) deck.style.scrollSnapType = ''; deck.style.scrollBehavior = ''; }
+    else {
+      deck.style.scrollBehavior = '';
+      if (holdSnap){
+        const release = () => { deck.style.scrollSnapType = ''; deck.removeEventListener('touchstart', release); deck.removeEventListener('wheel', release); };
+        deck.addEventListener('touchstart', release, {passive: true}); deck.addEventListener('wheel', release, {passive: true});
+      } else if (!writing) deck.style.scrollSnapType = '';
+    }
   })(t0);
 }
 
@@ -591,7 +600,16 @@ for (let i=1;i<=5;i++){
   fut.appendChild(li);
 }
 const more = document.createElement('li'); more.className = 'more'; more.textContent = '앞으로의 11월 15일은, 무슨 일이 있어도 누나가 주인공이야'; fut.appendChild(more);
-whenSeen(fut, () => [...fut.querySelectorAll('li:not(.more)')].forEach((li, i) => setTimeout(() => li.classList.add('on'), reduce ? 0 : 600 + i*800)), .3);
+whenSeen(fut, () => {
+  const items = [...fut.querySelectorAll('li:not(.more)')];
+  items.forEach((li, i) => setTimeout(() => li.classList.add('on'), reduce ? 0 : 600 + i*800));
+  setTimeout(() => {
+    const sec = fut.closest('.screen'), nb = sec.querySelector('.next');
+    const target = sec.offsetTop + sec.offsetHeight - deck.clientHeight;
+    if (target > deck.scrollTop + 4) glideTo(target, true);
+    if (nb) nb.classList.add('ready');
+  }, reduce ? 0 : 600 + items.length*800 + 700);
+}, .3);
 
 /* ---------- finale: stars gather into a heart ---------- */
 const end = document.getElementById('end'), hf = document.getElementById('heartfield'), hctx = hf.getContext('2d');
